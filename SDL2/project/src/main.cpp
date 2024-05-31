@@ -89,8 +89,8 @@ vector<Monster*> MonsterList()
     vector<Monster*> list_monster;
 
 
-    Monster* dynamic_monster = new Monster[50];
-    for(int i=0;i<50;i++)
+    Monster* dynamic_monster = new Monster[10];
+    for(int i=0;i<10;i++)
     {
         Monster* p_monster = dynamic_monster + i;
         if(p_monster != NULL)
@@ -108,9 +108,9 @@ vector<Monster*> MonsterList()
             list_monster.push_back(p_monster);
         }
     }
-    Monster* monster_obj = new Monster[50];
+    Monster* monster_obj = new Monster[10];
 
-    for(int i=0; i<50; i++)
+    for(int i=0; i<10; i++)
     {   
         Monster* p_monster = monster_obj + i;
        if(p_monster != NULL)
@@ -127,6 +127,29 @@ vector<Monster*> MonsterList()
     }
     return list_monster;
 }
+
+    vector<Boss*> BossList()
+    {
+    vector<Boss*> list_boss;
+    Boss* boss_obj = new Boss[10];
+
+    for(int i=0; i<10; i++)
+    {   
+        Boss* bossObject = boss_obj + i;
+       if(bossObject != NULL)
+       {
+        bossObject -> LoadImg("C:/recover/SDL2/project/data/images/boss_left.png",g_screen);
+        bossObject -> set_clips_();
+        bossObject -> set_type_move(Boss::STATIC_THREAT);
+        bossObject -> set_input_left(0);
+        bossObject -> set_x_pos(400+2000*i);
+        bossObject -> set_y_pos(250);
+
+        list_boss.push_back(bossObject); 
+       }
+    }
+    return list_boss;
+    }
 
 
 
@@ -168,14 +191,10 @@ int main(int argc, char* argv[])
 
     vector<Monster*> monster_list = MonsterList();
 
-    Boss bossObject;
-    bool ret = bossObject.LoadImg("C:/recover/SDL2/project/data/images/boss_left.png", g_screen);
-    bossObject.set_clips_();
-    int xPosBoss = 2000;
-    int yPosBoss = 25;
-    bossObject.set_x_pos(xPosBoss);
-    bossObject.set_y_pos(yPosBoss);
+    vector<Boss*> boss_list = BossList();
 
+
+    
 
 
     Explosion p_explosion;
@@ -232,7 +251,7 @@ int main(int argc, char* argv[])
         game_map.DrawMap(g_screen);
 
 
-        
+        SDL_Rect rect_player = p_player.GetRectFrame();
         for(int i=0; i < monster_list.size(); i++)
         {
             Monster*  p_monster = monster_list.at(i);
@@ -245,8 +264,9 @@ int main(int argc, char* argv[])
 
 
 
-                SDL_Rect rect_player = p_player.GetRectFrame();
+                
                 SDL_Rect  rect_monster = p_monster->GetRectFrame();
+                
         
                 bool bCol = false;
                 bCol = SDLCommonFunction::CheckCollision(rect_player, rect_monster);
@@ -303,6 +323,32 @@ int main(int argc, char* argv[])
 					}
             }
         }
+        for(int i=0; i < boss_list.size(); i++)
+        {
+            Boss*  bossObject = boss_list.at(i);
+            if(bossObject != NULL)
+            {
+                bossObject-> SetMapXY(map_data.start_x_, map_data.start_y_);
+                bossObject -> ImpMoveType(g_screen);
+                bossObject -> DoPlayer(map_data);
+                bossObject -> Show(g_screen);
+            }    
+
+        
+        SDL_Rect rect_boss = bossObject->GetRectFRAME();
+        bool bCol2 = false;
+        bCol2 = SDLCommonFunction::CheckCollision(rect_player, rect_boss);
+        if (bCol2)
+        {
+            hp_player++;
+            health_player.InitCrease();
+            health_player.Render(g_screen);
+            bossObject->Free();  
+            boss_list.erase(boss_list.begin() + i);
+            
+        }
+        }
+
 
 
 
@@ -326,6 +372,7 @@ int main(int argc, char* argv[])
                 time_game.SetText(str_time);
                 time_game.LoadRenderText(font, g_screen);
                 time_game.RenderText(g_screen, SCREEN_WIDTH - 200,15);
+        
         }
 
 //point
@@ -339,10 +386,15 @@ int main(int argc, char* argv[])
         font_point.RenderText(g_screen, SCREEN_WIDTH - 200, 50);        
 
         
-        bossObject.SetMapXY(map_data.start_x_, map_data.start_y_);
-        bossObject.DoPlayer(map_data);
-        bossObject.Show(g_screen);
-
+        if(point == 200){
+        if (MessageBoxW(NULL, L"YOU WIN", L"Info", MB_OK | MB_ICONSTOP) == IDOK)
+		{                           
+			close();
+			SDL_Quit();
+			return 0;
+		}
+        }
+        
 
         SDL_RenderPresent(g_screen);
     
@@ -358,7 +410,7 @@ int main(int argc, char* argv[])
     close();
     
     return 0;
-
+    
 }
 
 
